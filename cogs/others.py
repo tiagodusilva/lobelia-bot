@@ -16,7 +16,10 @@ class OthersCog(commands.Cog, name="Other"):
     @commands.command(aliases=["d"])
     async def dice(self, ctx, sides :int):
         """Throws an N sided dice"""
-        await ctx.send(f"You rolled {random.randrange(1, sides)}!")
+        if (sides < 1):
+            return
+
+        await ctx.send(f"You rolled {random.randrange(1, sides + 1)}!")
         pass
 
     @commands.command()
