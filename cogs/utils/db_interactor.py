@@ -29,6 +29,13 @@ class DbInteractor():
             cursor = _connection.cursor()
             cursor.execute("REPLACE INTO Roles VALUES (?, ?, ?)", (guild_id, role_id, role_name))
             _connection.commit()
+    
+    @staticmethod
+    def updateTeamName(guild_id, role_id, role_name):
+        with closing(_connection.cursor()) as cursor:
+            cursor = _connection.cursor()
+            cursor.execute("UPDATE Roles SET role_name=? WHERE guild_id=? AND role_id=?", (guild_id, role_id, role_name))
+            _connection.commit()
 
     @staticmethod
     def addRoleReaction(guild_id, message_id, channel_id, role_id):

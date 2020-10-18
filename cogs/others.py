@@ -19,6 +19,12 @@ class OthersCog(commands.Cog, name="Other"):
         await ctx.send(f"You rolled {random.randrange(1, sides)}!")
         pass
 
+    @commands.command()
+    async def info(self, ctx):
+        """Info about the bot"""
+        await ctx.send("""This bot is open source and its code can be found in the following repository:
+        https://github.com/tiagodusilva/XtremeBot""")
+
 # The setup function below is neccesarry. Remember we give bot.add_cog() the name of the class in this case MembersCog.
 # When we load the cog, we use the name of the file.
 def setup(bot):

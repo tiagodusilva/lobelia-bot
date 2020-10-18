@@ -68,6 +68,19 @@ class EventsCog(commands.Cog, name="Events"):
             DB.deleteTeamRole(role.guild.id, role.id)
             DB.deleteRoleReaction(role.guild.id, role.id)
             print(f"Warning: Deleted role {role.name} from guild {role.guild.name} with id {role.guild.id}")
+    
+    @commands.Cog.listener()
+    @commands.guild_only()
+    async def on_guild_role_update(self, before, after):
+        if (before.name == after.name or not DB.roleIsTeam(before.guild.id, before.id)):
+            return
+        
+        DB.updateTeamName(before.guild.id, before.id, after.name)
+        print(f"Update database role name of {before.name} to {after.name} from guild {before.guild.name}")
+
+        for channel in before.guild.channels:
+            if (channel.name == f"team-{before.name}"):
+                await channel.edit(name=f"team-{after.name}")
 
 
 # The setup function below is neccesarry. Remember we give bot.add_cog() the name of the class in this case MembersCog.

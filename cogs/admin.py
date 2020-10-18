@@ -12,7 +12,7 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.guild_only()
     async def addTeam(self, ctx, roleName):
 
-        """Add a team to the server:
+        """Add a team to the server
         -> Creates role (if it doesn't exist)
         -> Adds role to internal database
         -> Creates team channels and sets their permissions"""
@@ -103,8 +103,8 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.guild_only()
     async def disableRoleReactions(self, ctx):
 
-        """Disables all previous role reaction messages.
-        From this point onwards old messages will be edited to say they are no longer valid
+        """Disables all previous role reactions
+        From this point onwards old messages will be edited to say they are no longer valid and any reacts on them will be ignored
         This command is admin only"""
 
         if (not ctx.author.guild_permissions.administrator):
