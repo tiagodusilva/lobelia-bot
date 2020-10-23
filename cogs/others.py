@@ -1,6 +1,6 @@
 import cogs.utils.bot_macros as macros
 
-import random
+import os, random
 
 import discord
 from discord.ext import commands
@@ -19,14 +19,28 @@ class OthersCog(commands.Cog, name="Other"):
         if (sides < 1):
             return
 
+        if (len(str(sides)) >= 1980):
+            await ctx.send("Were you trying to pull a 20m radius Emerald Splash on me? 👀")
+            return
+
         await ctx.send(f"You rolled {random.randrange(1, sides + 1)}!")
         pass
 
     @commands.command()
     async def info(self, ctx):
         """Info about the bot"""
-        await ctx.send("""This bot is open source and its code can be found in the following repository:
-        https://github.com/tiagodusilva/XtremeBot""")
+        embed = discord.Embed(
+            title="Xtreme Bot",
+            url='https://github.com/tiagodusilva/XtremeBot',
+            type="rich",
+            description="My code is open source and can be found here!",
+            colour=discord.Colour(0x0051A0)
+        )
+        embed.add_field(name="Author", value="Tiago Silva")
+        embed.add_field(name="Version 1.01", value="Now 20% more useless!")
+        
+        await ctx.send(embed=embed)
+
 
 # The setup function below is neccesarry. Remember we give bot.add_cog() the name of the class in this case MembersCog.
 # When we load the cog, we use the name of the file.
