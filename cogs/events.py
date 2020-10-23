@@ -82,6 +82,11 @@ class EventsCog(commands.Cog, name="Events"):
             if (channel.name == f"team-{before.name}"):
                 await channel.edit(name=f"team-{after.name}")
 
+    @commands.Cog.listener()
+    @commands.guild_only()
+    async def on_member_join(self, member: discord.Member):
+        await member.guild.text_channels[0].send(f"Welcome to {member.guild.name} {member.mention}")
+
 
 # The setup function below is neccesarry. Remember we give bot.add_cog() the name of the class in this case MembersCog.
 # When we load the cog, we use the name of the file.
