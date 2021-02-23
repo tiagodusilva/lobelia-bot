@@ -1,5 +1,5 @@
-from cogs.utils.db_interactor import DbInteractor as DB
-import cogs.utils.bot_macros as macros
+from cogs.utils.dbInterface import DbInterface as DB
+import cogs.utils.botMacros as macros
 
 import discord
 from discord.ext import commands

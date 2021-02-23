@@ -1,4 +1,4 @@
-import cogs.utils.bot_macros as macros
+import cogs.utils.botMacros as macros
 
 import sqlite3
 
@@ -9,7 +9,7 @@ from contextlib import closing
 
 _connection = sqlite3.connect(macros.DB_FILE)
 
-class DbInteractor():
+class DbInterface():
 
     @staticmethod
     def get_message_react_pairs(guild_id):

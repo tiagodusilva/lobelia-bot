@@ -1,8 +1,8 @@
 import discord
 from discord.ext import commands
 
-import cogs.utils.bot_macros as macros
-from cogs.utils.db_interactor import DbInteractor as DB
+import cogs.utils.botMacros as macros
+from cogs.utils.dbInterface import DbInterface as DB
 
 class AdminCog(commands.Cog, name="Admin"):
     def __init__(self, bot):

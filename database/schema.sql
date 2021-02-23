@@ -1,12 +1,16 @@
-drop table if exists Roles;
+drop table if exists Team;
 CREATE TABLE Roles(
+    id INT NOT NULL PRIMARY KEY,
     guild_id INT NOT NULL,
     role_id INT NOT NULL,
-    role_name TEXT NOT NULL,
-    PRIMARY KEY(guild_id, role_id)
+    name VARCHAR(255) NOT NULL,
+    text_channel_id INT NOT NULL,
+    category_channel_id INT NOT NULL,
+    voice_channel_id INT NOT NULL,
+    UNIQUE(guild_id, role_id)
 );
 
-drop table if exists RoleReaction;
+drop table if exists TeamRoleReaction;
 CREATE TABLE RoleReaction(
     guild_id INT NOT NULL,
     message_id INT NOT NULL,

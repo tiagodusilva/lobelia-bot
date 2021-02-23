@@ -1,5 +1,5 @@
-from cogs.utils.db_interactor import DbInteractor as DB
-import cogs.utils.bot_macros as macros
+from cogs.utils.dbInterface import DbInterface as DB
+import cogs.utils.botMacros as macros
 
 import discord
 from discord.ext import commands
@@ -11,9 +11,9 @@ class EventsCog(commands.Cog, name="Events"):
         self.bot = bot
 
     async def on_raw_reaction(self, payload):
-        # Only listen to 'eject' emote reactions
-        if (payload.emoji.name != macros.REACT_EMOTE or payload.user_id == macros.BOT_ID):
-            return
+        # Only listen to reactions on messages made by the bot and whose emote matches 
+        if (payload.user_id == macros.BOT_ID or not payload.emoji.name in macros.REACTS):
+            return None, None, None
 
         message_ids = DB.get_message_react_pairs(payload.guild_id)
 
@@ -24,7 +24,8 @@ class EventsCog(commands.Cog, name="Events"):
                 role_id = m_id[2]
                 break
         else:
-            RuntimeError("Message id not found in database")
+            # RuntimeError("Message id not found in database")
+            return None, None, None
 
         guild = self.bot.get_guild(payload.guild_id)
         member = guild.get_member(payload.user_id)
@@ -82,10 +83,10 @@ class EventsCog(commands.Cog, name="Events"):
             if (channel.name == f"team-{before.name}"):
                 await channel.edit(name=f"team-{after.name}")
 
-    @commands.Cog.listener()
-    @commands.guild_only()
-    async def on_member_join(self, member: discord.Member):
-        await member.guild.text_channels[0].send(f"Welcome to {member.guild.name} {member.mention}")
+    # @commands.Cog.listener()
+    # @commands.guild_only()
+    # async def on_member_join(self, member: discord.Member):
+    #     await member.guild.text_channels[0].send(f"Welcome to {member.guild.name} {member.mention}")
 
 
 # The setup function below is neccesarry. Remember we give bot.add_cog() the name of the class in this case MembersCog.

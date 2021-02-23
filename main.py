@@ -1,4 +1,4 @@
-import cogs.utils.bot_macros as macros
+import cogs.utils.botMacros as macros
 
 import discord
 import os, sys, traceback
