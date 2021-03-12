@@ -24,39 +24,39 @@ class AdminCog(commands.Cog, name="Admin"):
         createdRole = False
         message = ""
 
+        roleName = f"Team {roleName}"
+
         # Find/Create Role
+        existingTeam = DB.get_team_from_name(ctx.guild.id, roleName)
+        if (existingTeam != None):
+            message += f"{roleName} already exists in database: Aborting"
+            await ctx.send(message)
+            return
+
         role = discord.utils.get(ctx.guild.roles, name=roleName)
         if (role != None):
-            message += f"Warning: Role for team {roleName} already exists\n"
+            message += f"Warning: Role for {roleName} already exists\n"
         else:
             try:
-                role = await ctx.guild.create_role(name=roleName, hoist=True, mentionable=True)
+                role = await ctx.guild.create_role(name=roleName, hoist=True, mentionable=True, reason=f"{ctx.author.display_name} ran the addTeam command")
                 createdRole = True
-                message += f"Created role for team {roleName}\n"
+                message += f"Created role for {roleName}\n"
             except:
-                message += f"Failed to create role for team {roleName}: Aborting"
+                message += f"Failed to create role for {roleName}: Aborting"
                 await ctx.send(message)
                 return
 
-        # Add team to database
-        if (createdRole):
-            try:
-                DB.replaceRole(ctx.guild.id, role.id, role.name)
-            except:
-                message += "Problem in database: Aborting"
-                await ctx.send(message)
-                return        
-
+        category, textChannel, voiceChannel = None, None, None
         # Create channels and set their permissions
-        if (discord.utils.get(ctx.guild.voice_channels, name=f"team-{roleName}")):
-            message += f"Warning: Category for team {roleName} already exists\n"
+        if (discord.utils.get(ctx.guild.voice_channels, name=roleName)):
+            message += f"Warning: Channels for {roleName} may already exist\n"
         else:
             try:
-                category = await ctx.guild.create_category_channel("team-" + roleName)
-                textChannel = await category.create_text_channel("team-" + roleName)
-                voiceChannel = await category.create_voice_channel("team-" + roleName)
+                category = await ctx.guild.create_category_channel(roleName)
+                textChannel = await category.create_text_channel(roleName)
+                voiceChannel = await category.create_voice_channel(roleName)
 
-                message += f"Created channels for team {roleName}\n"
+                message += f"Created channels for {roleName}\n"
             except:
                 message += "Failed to create channels: Aborting"
                 await ctx.send(message)
@@ -65,20 +65,29 @@ class AdminCog(commands.Cog, name="Admin"):
             try:
                 await textChannel.set_permissions(ctx.guild.default_role, view_channel=False)
                 await textChannel.set_permissions(role, view_channel=True, send_messages=True, manage_messages=True, read_messages=True)
-                await voiceChannel.set_permissions(role, view_channel=True, send_messages=True, read_messages=True, connect=True)
+                await voiceChannel.set_permissions(role, view_channel=False, send_messages=True, read_messages=True, connect=False)
 
-                message += f"Set channel permissions for team {roleName}\n"
+                message += f"Set channel permissions for {roleName}\n"
             except:
                 message += "Failed to set channel permissions: Aborting"
+                await ctx.send(message)
+                return
+            
+        # Add team to database
+        if (createdRole):
+            try:
+                DB.add_team(ctx.guild.id, roleName, role.id, category.id, textChannel.id, voiceChannel.id)
+            except:
+                message += "Problem in database: Aborting"
                 await ctx.send(message)
                 return
         
         await ctx.send(message.rstrip('\n'))
 
 
-    @commands.command(aliases=['roleReact'])
+    @commands.command(aliases=['teamRoleReact'])
     @commands.guild_only()
-    async def roleReaction(self, ctx, role: discord.Role):
+    async def teamRoleReaction(self, ctx, role: discord.Role):
 
         """Sends a message to assign teams based on reacts
         The bot will send a message and anyone who reacts to it will get assigned/unassigned to the corresponding team
@@ -88,47 +97,53 @@ class AdminCog(commands.Cog, name="Admin"):
         if (not ctx.author.guild_permissions.administrator):
             await ctx.send(macros.FORBIDDEN_EMOTE + " Only admins can use this command")
             return
+        
+        team = DB.get_team_from_role(ctx.guild.id, role.id)
+        if team == None:
+            await ctx.send(f"{macros.FORBIDDEN_EMOTE} Role {role.name} does not correspond to a team!")
+            return
 
-        message = await ctx.send(f"To enter team {role.mention} use the {macros.REACT_EMOTE} react below!\nWarning: Joining another team will get you unassigned from the previous one")
+        message = await ctx.send(f"To enter {role.mention} use the {macros.REACT_EMOTE} react below!\nWarning: Joining another team will get you unassigned from the previous one")
         await message.add_reaction(macros.REACT_EMOTE)
 
         try:
-            DB.addRoleReaction(ctx.guild.id, message.id, ctx.channel.id, role.id)
+            DB.add_team_role_reaction(ctx.guild.id, message.id, ctx.channel.id, team.team_id)
         except:
             await message.delete()
             return
 
 
-    @commands.command()
-    @commands.guild_only()
-    async def disableRoleReactions(self, ctx):
+    # TODO:
+    # @commands.command()
+    # @commands.guild_only()
+    # async def disableRoleReactions(self, ctx):
 
-        """Disables all previous role reactions
-        From this point onwards old messages will be edited to say they are no longer valid and any reacts on them will be ignored
-        This command is admin only"""
+    #     """Disables all previous role reactions
+    #     All role reactions in this channel will be edited to mention they are no longer valid and any reacts on them will be ignored
+    #     This command is admin only"""
 
-        if (not ctx.author.guild_permissions.administrator):
-            await ctx.send(macros.FORBIDDEN_EMOTE + " Only admins can use this command")
-            return
+    #     if (not ctx.author.guild_permissions.administrator):
+    #         await ctx.send(macros.FORBIDDEN_EMOTE + " Only admins can use this command")
+    #         return
 
-        messages = None
-        try:
-            messages = DB.get_message_react_pairs(ctx.guild.id)
-        except:
-            ctx.send("Couldn't retrive database pairs: Aborting")
-            return
+    #     messages = None
+    #     try:
+    #         messages = DB.get_message_react_pairs(ctx.guild.id)
+    #     except:
+    #         ctx.send("Couldn't retrive database pairs: Aborting")
+    #         return
 
-        try:
-            DB.deleteGuildRoleReactions(ctx.guild.id)
-        except:
-            await ctx.send("Failed to commit database transaction: Aborting")
-            return
+    #     try:
+    #         DB.deleteGuildRoleReactions(ctx.guild.id)
+    #     except:
+    #         await ctx.send("Failed to commit database transaction: Aborting")
+    #         return
 
-        for p in messages:
-            message = await (ctx.guild.get_channel(p[1])).fetch_message(p[0])
-            await message.edit(content=message.content + "\nThis message has been deactivated, reacts will have no more effect from now on")
+    #     for p in messages:
+    #         message = await (ctx.guild.get_channel(p[1])).fetch_message(p[0])
+    #         await message.edit(content=message.content + "\nThis message has been deactivated, reacts will have no more effect from now on")
 
-        await ctx.send("All previous messages are now invalid")
+    #     await ctx.send("All previous messages are now invalid")
 
 
 
