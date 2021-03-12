@@ -15,8 +15,6 @@ class EventsCog(commands.Cog, name="Events"):
         if (payload.user_id == macros.BOT_ID or not payload.emoji.name in macros.REACTS):
             return None, None
 
-        message_ids = DB.get_message_react_pairs(payload.guild_id)
-
         team = DB.get_team_from_role_reaction(payload.guild_id, payload.channel_id, payload.message_id)
         if (team == None):
             return None, None, None

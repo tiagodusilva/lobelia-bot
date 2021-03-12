@@ -10,12 +10,36 @@ class TeamsCog(commands.Cog, name="Teams"):
 
     @commands.command()
     @commands.guild_only()
+    async def evict(self, ctx):
+
+        """Blocks access to the team's voice channel
+        Must be sent from the team's text channel"""
+
+        team = DB.get_team_from_text_channel(ctx.guild.id, ctx.channel.id)
+        if (team == None):
+            await ctx.send(macros.FORBIDDEN_EMOTE + " This channel doesn't belong to a team!")
+            return
+
+        channel = discord.utils.get(ctx.guild.voice_channels, id=team.voice_channel_id)
+
+        for member in channel.members:
+            if member.guild_permissions.administrator:
+                continue
+            member_team = DB.get_member_team(ctx.guild.id, member)
+            if (member_team == None) or (team.team_id != member_team.team_id):
+                await member.move_to(None)
+
+        await ctx.send("Evicted non-team members")
+
+
+    @commands.command()
+    @commands.guild_only()
     async def lock(self, ctx):
 
         """Blocks access to the team's voice channel
         Must be sent from the team's text channel"""
 
-        team = DB.get_team_from_text_channel(ctx.guild.id)
+        team = DB.get_team_from_text_channel(ctx.guild.id, ctx.channel.id)
         if (team == None):
             await ctx.send(macros.FORBIDDEN_EMOTE + " This channel doesn't belong to a team!")
             return
@@ -33,7 +57,7 @@ class TeamsCog(commands.Cog, name="Teams"):
         """Allows anyone into the team's voice channel
         Must be sent from the team's text channel"""
 
-        team = DB.get_team_from_text_channel(ctx.guild.id)
+        team = DB.get_team_from_text_channel(ctx.guild.id, ctx.channel.id)
         if (team == None):
             await ctx.send(macros.FORBIDDEN_EMOTE + " This channel doesn't belong to a team!")
             return

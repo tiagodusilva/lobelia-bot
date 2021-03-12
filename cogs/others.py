@@ -30,14 +30,14 @@ class OthersCog(commands.Cog, name="Other"):
     async def info(self, ctx):
         """Info about the bot"""
         embed = discord.Embed(
-            title="Xtreme Bot",
+            title="Retro Jam 20(21) Bot",
             url='https://github.com/tiagodusilva/XtremeBot',
             type="rich",
             description="My code is open source and can be found here!",
             colour=discord.Colour(0x0051A0)
         )
         embed.add_field(name="Author", value="Tiago Silva")
-        embed.add_field(name="Version 1.01", value="Now 20% more useless!")
+        embed.add_field(name="Version 2.0", value="Refactor party!")
         
         await ctx.send(embed=embed)
 

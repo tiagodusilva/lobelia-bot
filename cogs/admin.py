@@ -21,9 +21,7 @@ class AdminCog(commands.Cog, name="Admin"):
             await ctx.send(macros.FORBIDDEN_EMOTE + " Only admins can use this command")
             return
 
-        createdRole = False
         message = ""
-
         roleName = f"Team {roleName}"
 
         # Find/Create Role
@@ -39,7 +37,6 @@ class AdminCog(commands.Cog, name="Admin"):
         else:
             try:
                 role = await ctx.guild.create_role(name=roleName, hoist=True, mentionable=True, reason=f"{ctx.author.display_name} ran the addTeam command")
-                createdRole = True
                 message += f"Created role for {roleName}\n"
             except:
                 message += f"Failed to create role for {roleName}: Aborting"
@@ -63,9 +60,12 @@ class AdminCog(commands.Cog, name="Admin"):
                 return
             
             try:
+                await category.set_permissions(ctx.guild.default_role, view_channel=False)
+                await category.set_permissions(role, view_channel=True)
                 await textChannel.set_permissions(ctx.guild.default_role, view_channel=False)
                 await textChannel.set_permissions(role, view_channel=True, send_messages=True, manage_messages=True, read_messages=True)
-                await voiceChannel.set_permissions(role, view_channel=False, send_messages=True, read_messages=True, connect=False)
+                await voiceChannel.set_permissions(ctx.guild.default_role, view_channel=False, connect=False)
+                await voiceChannel.set_permissions(role, view_channel=True, connect=True)
 
                 message += f"Set channel permissions for {roleName}\n"
             except:
@@ -74,13 +74,12 @@ class AdminCog(commands.Cog, name="Admin"):
                 return
             
         # Add team to database
-        if (createdRole):
-            try:
-                DB.add_team(ctx.guild.id, roleName, role.id, category.id, textChannel.id, voiceChannel.id)
-            except:
-                message += "Problem in database: Aborting"
-                await ctx.send(message)
-                return
+        try:
+            DB.add_team(ctx.guild.id, roleName, role.id, category.id, textChannel.id, voiceChannel.id)
+        except:
+            message += "Problem in database: Aborting"
+            await ctx.send(message)
+            return
         
         await ctx.send(message.rstrip('\n'))
 

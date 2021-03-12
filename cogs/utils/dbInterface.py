@@ -57,10 +57,10 @@ class DbInterface():
         with closing(_connection.cursor()) as cursor:
             cursor = _connection.cursor()
             team = cursor.execute(
-                """SELECT id, guild_id, role_id, name, category_channel_id, text_channel_id, voice_channel_id
+                """SELECT id, Team.guild_id, role_id, name, category_channel_id, text_channel_id, voice_channel_id
                     FROM TeamRoleReaction
-                    WHERE guild_id = ? AND channel_id = ? AND message_id = ?
                     INNER JOIN Team ON(TeamRoleReaction.team_id = Team.id)
+                    WHERE TeamRoleReaction.guild_id = ? AND channel_id = ? AND message_id = ?
                 """,
                 (guild_id, channel_id, message_id)
             ).fetchone()
