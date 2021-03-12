@@ -1,5 +1,5 @@
-from cogs.utils.db_interactor import DbInteractor as DB
-import cogs.utils.bot_macros as macros
+from cogs.utils.dbInterface import DbInterface as DB
+import cogs.utils.botMacros as macros
 
 import discord
 from discord.ext import commands
@@ -10,19 +10,42 @@ class TeamsCog(commands.Cog, name="Teams"):
 
     @commands.command()
     @commands.guild_only()
+    async def evict(self, ctx):
+
+        """Blocks access to the team's voice channel
+        Must be sent from the team's text channel"""
+
+        team = DB.get_team_from_text_channel(ctx.guild.id, ctx.channel.id)
+        if (team == None):
+            await ctx.send(macros.FORBIDDEN_EMOTE + " This channel doesn't belong to a team!")
+            return
+
+        channel = discord.utils.get(ctx.guild.voice_channels, id=team.voice_channel_id)
+
+        for member in channel.members:
+            if member.guild_permissions.administrator:
+                continue
+            member_team = DB.get_member_team(ctx.guild.id, member)
+            if (member_team == None) or (team.team_id != member_team.team_id):
+                await member.move_to(None)
+
+        await ctx.send("Evicted non-team members")
+
+
+    @commands.command()
+    @commands.guild_only()
     async def lock(self, ctx):
 
         """Blocks access to the team's voice channel
         Must be sent from the team's text channel"""
 
-        textChannel = ctx.channel
-
-        if (not textChannel.name.startswith('team-')):
-            await ctx.send(macros.FORBIDDEN_EMOTE + " This isn't a team's channel!")
+        team = DB.get_team_from_text_channel(ctx.guild.id, ctx.channel.id)
+        if (team == None):
+            await ctx.send(macros.FORBIDDEN_EMOTE + " This channel doesn't belong to a team!")
             return
-        
-        channel = discord.utils.get(ctx.guild.voice_channels, name=textChannel.name)
-        await channel.set_permissions(ctx.guild.default_role, connect=False)
+
+        channel = discord.utils.get(ctx.guild.voice_channels, id=team.voice_channel_id)
+        await channel.set_permissions(ctx.guild.default_role, view_channel=False, connect=False)
 
         await ctx.send("Locked voice channel")
 
@@ -34,17 +57,16 @@ class TeamsCog(commands.Cog, name="Teams"):
         """Allows anyone into the team's voice channel
         Must be sent from the team's text channel"""
 
-        textChannel = ctx.channel
-
-        if (not textChannel.name.startswith('team-')):
-            await ctx.send(macros.FORBIDDEN_EMOTE + " This isn't a team's channel!")
+        team = DB.get_team_from_text_channel(ctx.guild.id, ctx.channel.id)
+        if (team == None):
+            await ctx.send(macros.FORBIDDEN_EMOTE + " This channel doesn't belong to a team!")
             return
-        
-        channel = discord.utils.get(ctx.guild.voice_channels, name=textChannel.name)
-        await channel.set_permissions(ctx.guild.default_role, connect=True)
 
-        await ctx.send("Unlocked voice channel")    
-    
+        channel = discord.utils.get(ctx.guild.voice_channels, id=team.voice_channel_id)
+        await channel.set_permissions(ctx.guild.default_role, view_channel=True, connect=True)
+
+        await ctx.send("Unlocked voice channel")
+
 
     @commands.command(aliases=['setTeamColour'])
     @commands.guild_only()
@@ -68,25 +90,6 @@ class TeamsCog(commands.Cog, name="Teams"):
         else:
             await ctx.send(macros.FORBIDDEN_EMOTE + " Only admins or team members can change that role")
 
-
-    @commands.command()
-    @commands.guild_only()
-    async def listTeams(self, ctx):
-
-        """Prints a list of all teams and members"""
-
-        message = ""
-        for team in DB.getTeams(ctx.guild.id):
-            message += f"\n{team[1]}:"
-            for member in ctx.guild.members:
-                if discord.utils.get(member.roles, name=team[1] ) != None:
-                    message += f"\n\t{member.display_name}"
-
-        message_pos = 0
-        while (len(message) - message_pos > macros.CHARACTER_LIMIT):
-            await ctx.send(message[message_pos:message_pos + macros.CHARACTER_LIMIT])
-            message_pos += macros.CHARACTER_LIMIT
-        await ctx.send(message[message_pos:])
 
 # The setup function below is neccesarry. Remember we give bot.add_cog() the name of the class in this case MembersCog.
 # When we load the cog, we use the name of the file.

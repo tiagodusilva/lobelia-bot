@@ -1,4 +1,4 @@
-import cogs.utils.bot_macros as macros
+import cogs.utils.botMacros as macros
 
 import os, random
 
@@ -30,14 +30,14 @@ class OthersCog(commands.Cog, name="Other"):
     async def info(self, ctx):
         """Info about the bot"""
         embed = discord.Embed(
-            title="Xtreme Bot",
+            title="RetroBot 20(21)",
             url='https://github.com/tiagodusilva/XtremeBot',
             type="rich",
             description="My code is open source and can be found here!",
             colour=discord.Colour(0x0051A0)
         )
         embed.add_field(name="Author", value="Tiago Silva")
-        embed.add_field(name="Version 1.01", value="Now 20% more useless!")
+        embed.add_field(name="Version 2.0", value="Refactor party!")
         
         await ctx.send(embed=embed)
 

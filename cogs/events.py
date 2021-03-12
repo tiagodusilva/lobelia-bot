@@ -1,5 +1,5 @@
-from cogs.utils.db_interactor import DbInteractor as DB
-import cogs.utils.bot_macros as macros
+from cogs.utils.dbInterface import DbInterface as DB
+import cogs.utils.botMacros as macros
 
 import discord
 from discord.ext import commands
@@ -11,42 +11,36 @@ class EventsCog(commands.Cog, name="Events"):
         self.bot = bot
 
     async def on_raw_reaction(self, payload):
-        # Only listen to 'eject' emote reactions
-        if (payload.emoji.name != macros.REACT_EMOTE or payload.user_id == macros.BOT_ID):
-            return
+        # Only listen to reactions on messages made by the bot and whose emote matches 
+        if (payload.user_id == macros.BOT_ID or not payload.emoji.name in macros.REACTS):
+            return None, None
 
-        message_ids = DB.get_message_react_pairs(payload.guild_id)
-
-        role_id = None
-        # Check if it's one of the messages we're listening to
-        for m_id in message_ids:
-            if (m_id[0] == payload.message_id):
-                role_id = m_id[2]
-                break
-        else:
-            RuntimeError("Message id not found in database")
+        team = DB.get_team_from_role_reaction(payload.guild_id, payload.channel_id, payload.message_id)
+        if (team == None):
+            return None, None, None
 
         guild = self.bot.get_guild(payload.guild_id)
-        member = guild.get_member(payload.user_id)
-        role = guild.get_role(role_id)
-
-        return guild, member, role
+        return team, guild, guild.get_member(payload.user_id)
 
     @commands.Cog.listener()
     @commands.guild_only()
     async def on_raw_reaction_add(self, payload):
         try:
-            guild, member, role = await self.on_raw_reaction(payload)
+            team, guild, member = await self.on_raw_reaction(payload)
+            if team == None:
+                return
 
-            old_role = DB.getMemberTeamRole(payload.guild_id, member.roles)
+            new_role = guild.get_role(team.role_id)
 
-            if (old_role != None):
+            old_team = DB.get_member_team(payload.guild_id, member)
+            if old_team != None:
+                old_role = guild.get_role(old_team.role_id)
                 await member.remove_roles(old_role)
-                await member.add_roles(role)
-                await guild.system_channel.send(f"Member {member.name} changed from team {old_role.name} to team {role.name}")
+                await member.add_roles(new_role)
+                await guild.system_channel.send(f"Member {member.mention} changed from team {old_role.name} to team {new_role.name}")
             else:
-                await guild.system_channel.send(f"Member {member.name} joined team {role.name}")
-                await member.add_roles(role)
+                await member.add_roles(new_role)
+                await guild.system_channel.send(f"Member {member.mention} joined team {new_role.name}")
         except:
             pass
 
@@ -54,38 +48,44 @@ class EventsCog(commands.Cog, name="Events"):
     @commands.guild_only()
     async def on_raw_reaction_remove(self, payload):
         try:
-            guild, member, role = await self.on_raw_reaction(payload)
+            team, guild, member = await self.on_raw_reaction(payload)
+            if team == None:
+                return
+
+            role = guild.get_role(team.role_id)
             await member.remove_roles(role)
-            await guild.system_channel.send(f"Member {member.name} left team {role.name}")
+            # TODO: Fix message once we remove reacts on the other event
+            await guild.system_channel.send(f"Member {member.mention} (may have) left team {role.name}")
         except:
             pass
+
 
 
     @commands.Cog.listener()
     @commands.guild_only()
     async def on_guild_role_delete(self, role):
-        if (DB.roleIsTeam(role.guild.id, role.id)):
-            DB.deleteTeamRole(role.guild.id, role.id)
-            DB.deleteRoleReaction(role.guild.id, role.id)
-            print(f"Warning: Deleted role {role.name} from guild {role.guild.name} with id {role.guild.id}")
-    
-    @commands.Cog.listener()
-    @commands.guild_only()
-    async def on_guild_role_update(self, before, after):
-        if (before.name == after.name or not DB.roleIsTeam(before.guild.id, before.id)):
-            return
-        
-        DB.updateTeamName(before.guild.id, before.id, after.name)
-        print(f"Update database role name of {before.name} to {after.name} from guild {before.guild.name}")
+        team = DB.get_team_from_role(role.guild.id, role.id)
+        if team != None:            
+            DB.delete_team(team.team_id)
+            await role.guild.system_channel.send(f"Warning: Role {role.name} was manually deleted")
 
-        for channel in before.guild.channels:
-            if (channel.name == f"team-{before.name}"):
-                await channel.edit(name=f"team-{after.name}")
+    
+    # @commands.Cog.listener()
+    # @commands.guild_only()
+    # async def on_guild_role_update(self, before, after):
+    #     if (before.name == after.name or not DB.roleIsTeam(before.guild.id, before.id)):
+    #         return
+        
+    #     DB.updateTeamName(before.guild.id, before.id, after.name)
+    #     print(f"Updated database role name of {before.name} to {after.name} from guild {before.guild.name}")
+
 
     @commands.Cog.listener()
     @commands.guild_only()
     async def on_member_join(self, member: discord.Member):
-        await member.guild.text_channels[0].send(f"Welcome to {member.guild.name} {member.mention}")
+        welcome_channel = await discord.utils.get(member.guild.text_channels, name="welcome")
+        if welcome_channel != None:
+            await welcome_channel.send(f"Welcome to {member.guild.name} {member.mention}")
 
 
 # The setup function below is neccesarry. Remember we give bot.add_cog() the name of the class in this case MembersCog.

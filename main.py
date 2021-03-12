@@ -1,4 +1,4 @@
-import cogs.utils.bot_macros as macros
+import cogs.utils.botMacros as macros
 
 import discord
 import os, sys, traceback
@@ -8,7 +8,7 @@ intents = discord.Intents.default()
 intents.members = True
 intents.reactions = True
 
-bot = commands.Bot(command_prefix='x! ', intents=intents, description='IEEExtreme Bot')
+bot = commands.Bot(command_prefix=macros.BOT_PREFIX, intents=intents, description='RetroBot 20(21)')
 token_file = "token.txt"
 
 try:
@@ -22,7 +22,7 @@ async def on_ready():
     print(f'\n\nLogged in as: {bot.user.name} - {bot.user.id}\nDiscord.py version: {discord.__version__}\n')
 
     # await bot.change_presence(activity=discord.Activity(type=5, name="Energy drink comsumption 🔋"))
-    await bot.change_presence(activity=discord.Activity(type=0, name="x! help"))
+    await bot.change_presence(activity=discord.Activity(type=0, name="r! help"))
 
     print(f'Successfully logged in and booted...!')
 
