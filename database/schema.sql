@@ -18,6 +18,6 @@ CREATE TABLE TeamRoleReaction(
     guild_id INTEGER NOT NULL,
     channel_id INTEGER NOT NULL,
     message_id INTEGER NOT NULL,
-    team_id INTEGER NOT NULL,
+    team_id INTEGER NOT NULL REFERENCES Team ON DELETE CASCADE,
     PRIMARY KEY(guild_id, channel_id, message_id, team_id)
 );

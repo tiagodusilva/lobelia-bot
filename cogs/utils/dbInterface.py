@@ -70,6 +70,18 @@ class DbInterface():
             _connection.commit()
 
     @staticmethod
+    def delete_team(team_id):
+        with closing(_connection.cursor()) as cursor:
+            cursor = _connection.cursor()
+            cursor.execute(
+                """DELETE FROM Team
+                    WHERE id = ?
+                """,
+                (team_id, )
+            )
+            _connection.commit()
+
+    @staticmethod
     def get_team_from_role_reaction(guild_id, channel_id, message_id):
         with closing(_connection.cursor()) as cursor:
             cursor = _connection.cursor()

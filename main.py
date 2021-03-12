@@ -8,7 +8,7 @@ intents = discord.Intents.default()
 intents.members = True
 intents.reactions = True
 
-bot = commands.Bot(command_prefix='r! ', intents=intents, description='RetroBot 20(21)')
+bot = commands.Bot(command_prefix=macros.BOT_PREFIX, intents=intents, description='RetroBot 20(21)')
 token_file = "token.txt"
 
 try:

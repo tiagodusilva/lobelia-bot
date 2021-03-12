@@ -61,13 +61,13 @@ class EventsCog(commands.Cog, name="Events"):
 
 
 
-    # @commands.Cog.listener()
-    # @commands.guild_only()
-    # async def on_guild_role_delete(self, role):
-    #     if (DB.roleIsTeam(role.guild.id, role.id)):
-    #         DB.deleteTeamRole(role.guild.id, role.id)
-    #         DB.deleteRoleReaction(role.guild.id, role.id)
-    #         print(f"Warning: Deleted role {role.name} from guild {role.guild.name} with id {role.guild.id}")
+    @commands.Cog.listener()
+    @commands.guild_only()
+    async def on_guild_role_delete(self, role):
+        team = DB.get_team_from_role(role.guild.id, role.id)
+        if team != None:            
+            DB.delete_team(team.team_id)
+            await role.guild.system_channel.send(f"Warning: Role {role.name} was manually deleted")
 
     
     # @commands.Cog.listener()

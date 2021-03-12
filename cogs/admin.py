@@ -10,6 +10,31 @@ class AdminCog(commands.Cog, name="Admin"):
 
     @commands.command()
     @commands.guild_only()
+    async def deleteTeam(self, ctx, role: discord.Role, s = ""):
+        
+        """Deletes a team
+        Deletes a team's role from the server
+        If an optional string '--channels' is given, the team's text and voice channels will also be deleted
+        """
+
+        if (not ctx.author.guild_permissions.administrator):
+            await ctx.send(macros.FORBIDDEN_EMOTE + " Only admins can use this command")
+            return
+
+        team = DB.get_team_from_role(ctx.guild.id, role.id)
+        if team != None:
+            DB.delete_team(team.team_id)
+            await role.guild.system_channel.send(f"Warning: Role {role.name} was deleted by {ctx.author.mention}")
+        
+            if s == "--channels":
+                await ctx.guild.get_channel(team.text_channel_id).delete()
+                await ctx.guild.get_channel(team.voice_channel_id).delete()
+                await ctx.guild.get_channel(team.category_channel_id).delete()
+                await role.guild.system_channel.send(f"Warning: Channels of role {role.name} were deleted by {ctx.author.mention}")
+            
+
+    @commands.command()
+    @commands.guild_only()
     async def addTeam(self, ctx, roleName):
 
         """Add a team to the server
@@ -66,6 +91,16 @@ class AdminCog(commands.Cog, name="Admin"):
                 await textChannel.set_permissions(role, view_channel=True, send_messages=True, manage_messages=True, read_messages=True)
                 await voiceChannel.set_permissions(ctx.guild.default_role, view_channel=False, connect=False)
                 await voiceChannel.set_permissions(role, view_channel=True, connect=True)
+
+                await textChannel.send(f"""Welcome to {role.mention}!
+    This is your own private channel that can only be seen by you and the admins!
+    
+    Your respective voice channel is initially locked, but you can open it to allow anyone else to join via the `{macros.BOT_PREFIX}lock` and `{macros.BOT_PREFIX}unlock` commands!
+    If anyone is in your voice channel and you wish they no longer were, look no further, as you can evict anyone who isn't a member of your team via the `{macros.BOT_PREFIX}unlock` command.
+    
+    Everyone loves to add their personal visual flare, so customize your team's color with the `{macros.BOT_PREFIX}setTeamColor` or `{macros.BOT_PREFIX}setTeamColor` commands!
+    
+    To learn more about these commands use `{macros.BOT_PREFIX}help Teams`""")
 
                 message += f"Set channel permissions for {roleName}\n"
             except:
