@@ -38,7 +38,24 @@ class DbInterface():
             ).fetchone()
             return role_id[0] if role_id != None else None
 
-    
+    @staticmethod
+    def get_team_role_reaction_channel_messages(guild_id, channel_id):
+        with closing(_connection.cursor()) as cursor:
+            cursor = _connection.cursor()
+            return cursor.execute(
+                """SELECT message_id
+                    FROM TeamRoleReaction
+                    WHERE guild_id = ? AND channel_id = ?
+                """,
+                (guild_id, channel_id)
+            ).fetchall()
+
+    @staticmethod
+    def delete_role_reaction_from_channel(guild_id, channel_id):
+        with closing(_connection.cursor()) as cursor:
+            cursor = _connection.cursor()
+            cursor.execute("DELETE FROM TeamRoleReaction WHERE guild_id=? AND channel_id=?", (guild_id, channel_id))
+            _connection.commit()
 
 
     # TEAMS

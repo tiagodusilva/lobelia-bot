@@ -110,39 +110,35 @@ class AdminCog(commands.Cog, name="Admin"):
         except:
             await message.delete()
             return
+        
+        # await ctx.message.delete()
 
 
-    # TODO:
-    # @commands.command()
-    # @commands.guild_only()
-    # async def disableRoleReactions(self, ctx):
+    @commands.command()
+    @commands.guild_only()
+    async def disableRoleReactions(self, ctx):
 
-    #     """Disables all previous role reactions
-    #     All role reactions in this channel will be edited to mention they are no longer valid and any reacts on them will be ignored
-    #     This command is admin only"""
+        """Disables all previous role reactions
+        All role reactions in this channel will be edited to mention they are no longer valid and any reacts on them will be ignored
+        This command is admin only"""
 
-    #     if (not ctx.author.guild_permissions.administrator):
-    #         await ctx.send(macros.FORBIDDEN_EMOTE + " Only admins can use this command")
-    #         return
+        if (not ctx.author.guild_permissions.administrator):
+            await ctx.send(macros.FORBIDDEN_EMOTE + " Only admins can use this command")
+            return
 
-    #     messages = None
-    #     try:
-    #         messages = DB.get_message_react_pairs(ctx.guild.id)
-    #     except:
-    #         ctx.send("Couldn't retrive database pairs: Aborting")
-    #         return
+        messages = DB.get_team_role_reaction_channel_messages(ctx.guild.id, ctx.channel.id)
 
-    #     try:
-    #         DB.deleteGuildRoleReactions(ctx.guild.id)
-    #     except:
-    #         await ctx.send("Failed to commit database transaction: Aborting")
-    #         return
+        try:
+            DB.delete_role_reaction_from_channel(ctx.guild.id, ctx.channel.id)
+        except:
+            await ctx.send("Failed to commit database transaction: Aborting")
+            return
 
-    #     for p in messages:
-    #         message = await (ctx.guild.get_channel(p[1])).fetch_message(p[0])
-    #         await message.edit(content=message.content + "\nThis message has been deactivated, reacts will have no more effect from now on")
+        for p in messages:
+            message = await ctx.channel.fetch_message(p[0])
+            await message.edit(content=f"{macros.FORBIDDEN_EMOTE} < DEACTIVATED >\n{message.content}")
 
-    #     await ctx.send("All previous messages are now invalid")
+        await ctx.send("All previous messages are now invalid")
 
 
 
