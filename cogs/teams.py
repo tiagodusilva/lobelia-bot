@@ -91,25 +91,6 @@ class TeamsCog(commands.Cog, name="Teams"):
             await ctx.send(macros.FORBIDDEN_EMOTE + " Only admins or team members can change that role")
 
 
-    # @commands.command()
-    # @commands.guild_only()
-    # async def listTeams(self, ctx):
-
-    #     """Prints a list of all teams and members"""
-
-    #     message = ""
-    #     for team in DB.getTeams(ctx.guild.id):
-    #         message += f"\n{team[1]}:"
-    #         for member in ctx.guild.members:
-    #             if discord.utils.get(member.roles, name=team[1] ) != None:
-    #                 message += f"\n\t{member.display_name}"
-
-    #     message_pos = 0
-    #     while (len(message) - message_pos > macros.CHARACTER_LIMIT):
-    #         await ctx.send(message[message_pos:message_pos + macros.CHARACTER_LIMIT])
-    #         message_pos += macros.CHARACTER_LIMIT
-    #     await ctx.send(message[message_pos:])
-
 # The setup function below is neccesarry. Remember we give bot.add_cog() the name of the class in this case MembersCog.
 # When we load the cog, we use the name of the file.
 def setup(bot):

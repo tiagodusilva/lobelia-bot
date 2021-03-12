@@ -30,7 +30,7 @@ class OthersCog(commands.Cog, name="Other"):
     async def info(self, ctx):
         """Info about the bot"""
         embed = discord.Embed(
-            title="Retro Jam 20(21) Bot",
+            title="RetroBot 20(21)",
             url='https://github.com/tiagodusilva/XtremeBot',
             type="rich",
             description="My code is open source and can be found here!",
