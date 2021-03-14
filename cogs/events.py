@@ -83,7 +83,7 @@ class EventsCog(commands.Cog, name="Events"):
     @commands.Cog.listener()
     @commands.guild_only()
     async def on_member_join(self, member: discord.Member):
-        welcome_channel = await discord.utils.get(member.guild.text_channels, name="welcome")
+        welcome_channel = discord.utils.get(member.guild.text_channels, name="welcome")
         if welcome_channel != None:
             await welcome_channel.send(f"Welcome to {member.guild.name} {member.mention}")
 

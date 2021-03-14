@@ -12,8 +12,8 @@ class TeamsCog(commands.Cog, name="Teams"):
     @commands.guild_only()
     async def evict(self, ctx):
 
-        """Blocks access to the team's voice channel
-        Must be sent from the team's text channel"""
+        """Disconnects users that do not belong to your team
+        *Small letters: This does not disconnect admins :)*"""
 
         team = DB.get_team_from_text_channel(ctx.guild.id, ctx.channel.id)
         if (team == None):
@@ -73,10 +73,13 @@ class TeamsCog(commands.Cog, name="Teams"):
     async def setTeamColor(self, ctx, role: discord.Role, colour: discord.Colour):
         """Sets the color for the team role from hex
         Can only be used by admins or team members"""
-        if (ctx.author.guild_permissions.administrator or discord.utils.get(ctx.author.roles, id=role.id)):
-            await role.edit(colour=colour)
-        else:
-            await ctx.send(macros.FORBIDDEN_EMOTE + " Only admins or team members can change that role")
+        if (ctx.author.guild_permissions.administrator) or discord.utils.get(ctx.author.roles, id=role.id):
+            team = DB.get_team_from_role(ctx.guild.id, role.id)
+            if team == None:
+                await ctx.send(macros.FORBIDDEN_EMOTE + " This role does not belong to any team")
+                return
+            else:
+                await role.edit(colour=colour)
 
 
     @commands.command(aliases=['setTeamColourRGB'])
@@ -85,10 +88,13 @@ class TeamsCog(commands.Cog, name="Teams"):
         """Sets the color for the team role from RGB (0-255)
         Can only be used by admins or team members"""
         colour = discord.Colour.from_rgb(r, g, b)
-        if (ctx.author.guild_permissions.administrator or discord.utils.get(ctx.author.roles, id=role.id)):
-            await role.edit(colour=colour)
-        else:
-            await ctx.send(macros.FORBIDDEN_EMOTE + " Only admins or team members can change that role")
+        if (ctx.author.guild_permissions.administrator) or discord.utils.get(ctx.author.roles, id=role.id):
+            team = DB.get_team_from_role(ctx.guild.id, role.id)
+            if team == None:
+                await ctx.send(macros.FORBIDDEN_EMOTE + " This role does not belong to any team")
+                return
+            else:
+                await role.edit(colour=colour)
 
 
 # The setup function below is neccesarry. Remember we give bot.add_cog() the name of the class in this case MembersCog.

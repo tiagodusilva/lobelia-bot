@@ -119,7 +119,7 @@ class AdminCog(commands.Cog, name="Admin"):
         await ctx.send(message.rstrip('\n'))
 
 
-    @commands.command(aliases=['teamRoleReact'])
+    @commands.command(aliases=['teamRoleReact', 'trr'])
     @commands.guild_only()
     async def teamRoleReaction(self, ctx, role: discord.Role):
 
