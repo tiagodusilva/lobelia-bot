@@ -1,3 +1,3 @@
-# TEMP Discord Bot ~ Temporary Ergo Multi Purpose Bot
+# Lobelia Discord Bot
 
-A Discord bot built for the IEEExtreme programming competition and the RetroJam competition to manage teams, roles, channels and more.
+A Discord bot built for the Retro Jam and IEEExtreme competitions to manage teams, roles, channels and more.
