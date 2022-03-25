@@ -8,8 +8,8 @@ intents = discord.Intents.default()
 intents.members = True
 intents.reactions = True
 
-bot = commands.Bot(command_prefix=macros.BOT_PREFIX, intents=intents, description='RetroBot 20(21)')
-token_file = "token.txt"
+bot = commands.Bot(command_prefix=macros.BOT_PREFIX, intents=intents, description='Lobelia bot')
+token_file = ".token"
 
 try:
     with open(token_file) as f:
@@ -22,7 +22,7 @@ async def on_ready():
     print(f'\n\nLogged in as: {bot.user.name} - {bot.user.id}\nDiscord.py version: {discord.__version__}\n')
 
     # await bot.change_presence(activity=discord.Activity(type=5, name="Energy drink comsumption 🔋"))
-    await bot.change_presence(activity=discord.Activity(type=0, name="r! help"))
+    await bot.change_presence(activity=discord.Activity(type=0, name="l! help"))
 
     print(f'Successfully logged in and booted...!')
 

@@ -30,14 +30,14 @@ class OthersCog(commands.Cog, name="Other"):
     async def info(self, ctx):
         """Info about the bot"""
         embed = discord.Embed(
-            title="RetroBot 20(21)",
-            url='https://github.com/tiagodusilva/XtremeBot',
+            title="Lobelia Bot",
+            url='https://github.com/tiagodusilva/lobelia-bot',
             type="rich",
-            description="My code is open source and can be found here!",
+            description="My cosde is open source and can be found here!",
             colour=discord.Colour(0x0051A0)
         )
         embed.add_field(name="Author", value="Tiago Silva")
-        embed.add_field(name="Version 2.0", value="Refactor party!")
+        embed.add_field(name="Version ??", value="Discord.py is alive again!")
         
         await ctx.send(embed=embed)
 

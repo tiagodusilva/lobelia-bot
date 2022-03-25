@@ -46,53 +46,57 @@ class AdminCog(commands.Cog, name="Admin"):
             await ctx.send(macros.FORBIDDEN_EMOTE + " Only admins can use this command")
             return
 
-        message = ""
+        warnings = ""
         roleName = f"Team {roleName}"
 
         # Find/Create Role
         existingTeam = DB.get_team_from_name(ctx.guild.id, roleName)
         if (existingTeam != None):
-            message += f"{roleName} already exists in database: Aborting"
-            await ctx.send(message)
+            await ctx.send(f"{roleName} already exists in database: Aborting")
             return
 
         role = discord.utils.get(ctx.guild.roles, name=roleName)
         if (role != None):
-            message += f"Warning: Role for {roleName} already exists\n"
+            warnings += f"Warning: Role for {roleName} already exists\n"
         else:
             try:
                 role = await ctx.guild.create_role(name=roleName, hoist=True, mentionable=True, reason=f"{ctx.author.display_name} ran the addTeam command")
-                message += f"Created role for {roleName}\n"
             except:
-                message += f"Failed to create role for {roleName}: Aborting"
-                await ctx.send(message)
+                await ctx.send(warnings + f"Failed to create role for {roleName}: Aborting")
                 return
 
         category, textChannel, voiceChannel = None, None, None
         # Create channels and set their permissions
         if (discord.utils.get(ctx.guild.voice_channels, name=roleName)):
-            message += f"Warning: Channels for {roleName} may already exist\n"
+            warnings += f"Warning: Channels for {roleName} may already exist\n"
         else:
             try:
-                category = await ctx.guild.create_category_channel(roleName)
-                textChannel = await category.create_text_channel(roleName)
-                voiceChannel = await category.create_voice_channel(roleName)
+                categoryOverwrites = {
+                    ctx.guild.default_role: discord.PermissionOverwrite(view_channel=False),
+                    ctx.guild.me: discord.PermissionOverwrite(view_channel=True, manage_channels=True, manage_permissions=True, manage_messages=True),
+                    role: discord.PermissionOverwrite(view_channel=True)
+                }
 
-                message += f"Created channels for {roleName}\n"
+                textChannelOverwrites = {
+                    ctx.guild.default_role: discord.PermissionOverwrite(view_channel=False),
+                    ctx.guild.me: discord.PermissionOverwrite(view_channel=True, manage_channels=True, manage_permissions=True, manage_messages=True),
+                    role: discord.PermissionOverwrite(view_channel=True, send_messages=True, manage_messages=True, read_messages=True)
+                }
+
+                voiceChannelOverwrites = {
+                    ctx.guild.default_role: discord.PermissionOverwrite(view_channel=False, connect=False),
+                    ctx.guild.me: discord.PermissionOverwrite(view_channel=True, manage_channels=True, manage_permissions=True, manage_messages=True),
+                    role: discord.PermissionOverwrite(view_channel=True, connect=True)
+                }   
+
+                category = await ctx.guild.create_category_channel(roleName, overwrites=categoryOverwrites)
+                textChannel = await category.create_text_channel(roleName, overwrites=textChannelOverwrites)
+                voiceChannel = await category.create_voice_channel(roleName, overwrites=voiceChannelOverwrites)
             except:
-                message += "Failed to create channels: Aborting"
-                await ctx.send(message)
+                await ctx.send(warnings + "Failed to create channels: Aborting")
                 return
-            
-            try:
-                await category.set_permissions(ctx.guild.default_role, view_channel=False)
-                await category.set_permissions(role, view_channel=True)
-                await textChannel.set_permissions(ctx.guild.default_role, view_channel=False)
-                await textChannel.set_permissions(role, view_channel=True, send_messages=True, manage_messages=True, read_messages=True)
-                await voiceChannel.set_permissions(ctx.guild.default_role, view_channel=False, connect=False)
-                await voiceChannel.set_permissions(role, view_channel=True, connect=True)
 
-                await textChannel.send(f"""Welcome to {role.mention}!
+            await textChannel.send(f"""Welcome to {role.mention}!
     This is your own private channel that can only be seen by you and the admins!
     
     Your respective voice channel is initially locked, but you can open it to allow anyone else to join via the `{macros.BOT_PREFIX}lock` and `{macros.BOT_PREFIX}unlock` commands!
@@ -101,22 +105,18 @@ class AdminCog(commands.Cog, name="Admin"):
     Everyone loves to add their personal visual flare, so customize your team's color with the `{macros.BOT_PREFIX}setTeamColor` or `{macros.BOT_PREFIX}setTeamColor` commands!
     
     To learn more about these commands use `{macros.BOT_PREFIX}help Teams`""")
-
-                message += f"Set channel permissions for {roleName}\n"
-            except:
-                message += "Failed to set channel permissions: Aborting"
-                await ctx.send(message)
-                return
             
         # Add team to database
         try:
             DB.add_team(ctx.guild.id, roleName, role.id, category.id, textChannel.id, voiceChannel.id)
         except:
-            message += "Problem in database: Aborting"
-            await ctx.send(message)
+            await ctx.send(warnings + "Error in database: Aborting")
             return
         
-        await ctx.send(message.rstrip('\n'))
+        if warnings != "":
+            await ctx.send(warnings.rstrip('\n'))
+        
+        await ctx.message.add_reaction(macros.CONFIRMATION_EMOTE)
 
 
     @commands.command(aliases=['teamRoleReact', 'trr'])
